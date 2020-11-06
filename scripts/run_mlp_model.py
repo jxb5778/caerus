@@ -27,13 +27,13 @@ test_df['label'] = test_df['label'].map(int)
 cls = caerus.models.MLP(layers=[2, 2, 1])
 
 loss_func = caerus.errors.MeanSquaredError()
-sgd = caerus.optimizers.SGD(learning_rate=0.2, beta_1=0.9, grad_clip=100)
+sgd = caerus.optimizers.SGD(learning_rate=0.3, beta_1=0.9, grad_clip=100)
 
 cls.compile(loss=loss_func, optimizer=sgd)
 
 print(cls.summary())
 
-history = cls.fit(X=train_df[['x', 'y']], y=train_df['label'], epochs=2500, batch_size=10)
+history = cls.fit(X=train_df[['x', 'y']], y=train_df['label'], epochs=2750, batch_size=5)
 
 preds = cls.predict(test_df[['x', 'y']])[0]
 

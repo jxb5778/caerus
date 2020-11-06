@@ -13,14 +13,15 @@ def cross_entropy(p, q):
 
 dist1 = np.array([[0.8, 0.1, 0.1], [0.9, 0.05, 0.05], [0.7, 0.1, 0.2], [0.7, 0.2, 0.1]])
 dist2 = np.array([[1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0]])
+dist3 = np.array([[.9, 0.1, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0]])
 
 softmax = caerus.activations.Softmax()
 ce = caerus.errors.CrossEntropy()
 
-print("Cross entropy:\n", ce(dist1, dist2))
+print("Cross entropy:\n", ce(dist2, dist3))
 print()
 print("Softmax:\n", softmax(dist1.T))
-print(np.sum(softmax(dist1), axis=1))
+print(np.argmax(softmax(dist1.T), axis=1))
 
 dist1 = np.array([np.diagflat(dist.reshape(-1,1)) - np.dot(dist.reshape(-1,1), dist.reshape(-1,1).T) for dist in dist1])
 

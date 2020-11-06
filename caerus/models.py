@@ -6,6 +6,10 @@ from caerus import errors
 
 
 class Model:
+    """ Base model class, each model must implement a fit and a predict method.
+
+    """
+
     def fit(self, X, y=None):
         pass
 
@@ -19,6 +23,12 @@ class Model:
 
 
 class MLP(Model):
+    """ Base multi-layer perceptron model (binary classification)
+
+    Note:
+        This model wasn't used for project milestone 2 results -> please review Sequential.
+
+    """
 
     def __init__(self, layers: list, rand_seed: int=42):
         self.weight_list = list()
@@ -147,6 +157,12 @@ class MLP(Model):
 
 
 class Sequential(Model):
+    """ Sequential feed-forward neural network model.
+
+    :param layers: (list of caerus.layers.Layer). List of layers to compute sequentially during forward and backprop passes.
+    :param rand_seed: (int). Default is 42. Integer value to use as the random seed.
+        Utilized during shuffling the input data after each epoch, as well as weight and bias initializations.
+    """
 
     def __init__(self, layers: list, rand_seed: int=42):
 
@@ -156,6 +172,13 @@ class Sequential(Model):
         np.random.seed(rand_seed)
 
     def compile(self, loss, optimizer):
+        """ Sets the loss function and optimizer for training of the model.
+
+        :param loss: (str or caerus.errors.ErrorFunc). Function to use to compute loss during training.
+            String inputs can be either: 'mse' or 'crossentropy'.
+        :param optimizer: (caerus.optimizers.SGD). Optimizer to use during training to optimize the model.
+        :return: None. sets model internal parameters: loss_func, optimizer, and sets _is_compiled to True.
+        """
 
         if isinstance(loss, str):
 
@@ -182,6 +205,10 @@ class Sequential(Model):
             self.layers[idx].name = '{}_{}'.format(self.layers[idx].name, idx)
 
     def summary(self):
+        """ Returns a string representation for the summary of the model.
+
+        :return: (str). Resulting string representation summarizing the model architecture.
+        """
 
         model_summary = """Model Summary:\n============================================\n{}\n""".format(
             '\n'.join(layer.name + ": " + str(layer.size) for layer in self.layers)
@@ -190,14 +217,26 @@ class Sequential(Model):
         return model_summary
 
     def _forward(self, X):
+        """ Sequentially computes the forward pass through the model.
+
+        :param X: (numpy.ndarray). Input array to compute the forward pass.
+        :return: (numpy.ndarray). Resulting array after computing the forward pass through the network.
+        """
 
         output = X.T
-        for layer in self.layers:
+
+        for index, layer in enumerate(self.layers):
             output = layer.forward(output)
 
         return output
 
     def _backprop(self, yhat_batch, y_batch):
+        """ Sequentially backpropogates loss through the network.
+
+        :param yhat_batch: (numpy.ndarray). Resulting target predictions after forward pass through the network.
+        :param y_batch: (numpy.ndarray). Targets for input data.
+        :return: None. Internal weights and bias parameters will be updated after error is backpropagated.
+        """
 
         batch_size = y_batch.shape[0]
 
@@ -233,7 +272,16 @@ class Sequential(Model):
         for l_idx in range(len(self.layers) - 1):
             self.layers[l_idx+1].weights = weight_w_momentum_list[l_idx]
 
-    def fit(self, X, y=None, epochs: int=10, batch_size: int=1, rand_seed: int=42):
+    def fit(self, X, y=None, epochs: int = 10, batch_size: int = 1, rand_seed: int = 42):
+        """ Performs tuning of the model based on input data X and targets y.
+
+        :param X: (numpy.ndarray). Input data to use for model training.
+        :param y: (numpy.ndarray). Input data to use as the target during model training.
+        :param epochs: (int). Number of epochs to train the model.
+        :param batch_size: (int). Number of data points to use in each batch of training data.
+        :param rand_seed: (int). Random seed to use during model training- affects shuffle of data between epochs.
+        :return: (list of float). Resulting history of errors during model training after each epoch.
+        """
 
         if not self._is_compiled:
             message = """
@@ -264,6 +312,9 @@ class Sequential(Model):
 
                 error = self.loss_func(yhat_batch, y_batch)
                 print("Error: ", error)
+                print("Yhat: ", yhat_batch)
+                print("Y: ", y_batch)
+                print()
 
                 self._backprop(yhat_batch, y_batch)
 
@@ -273,10 +324,17 @@ class Sequential(Model):
         return history
 
     def predict(self, X):
+        """ Performs inference on input data using the trained model.
+
+        :param X: (numpy.ndarray). Input data that will have target labels inferred.
+        :return: (numpy.ndarray). Resulting targets from inference, using the trained model.
+        """
 
         if not isinstance(X, np.ndarray):
             X = X.to_numpy()
 
         y_hat = self._forward(X)
+
+        print("Predicted: ", y_hat)
 
         return y_hat
